@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 import datetime
-from typing import Generator, Annotated
+from typing import Annotated
 
 from sqlalchemy.orm import Session
 from database import SessionLocal, yield_db_session
