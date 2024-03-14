@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 
 
 router = APIRouter(
@@ -22,6 +23,7 @@ RULES: dict = {
 }
 
 
-class UserDTO(object):
+class UserDTO(BaseModel):
     username: str
+    password: str
 

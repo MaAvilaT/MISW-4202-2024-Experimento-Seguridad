@@ -4,6 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+# noinspection PyPackageRequirements
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -23,23 +24,28 @@ bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='authentication/token')
 
 
-class CreateUserRequest(BaseModel):
+class CreateUserRequestModel(BaseModel):
     username: str
     password: str
-    type: UserRole
+    role: UserRole
     email: str
 
 
-class Token(BaseModel):
+class TokenModel(BaseModel):
     access_token: str
     token_type: str
 
 
-db_dependency = Annotated[Session, Depends(yield_db_session)]
-
-
 @router.post('/user', status_code=status.HTTP_201_CREATED)
-async def create_user(db: db_dependency, request: CreateUserRequest) -> dict:
+async def create_user(db: Annotated[Session, Depends(yield_db_session)],
+                      request: CreateUserRequestModel) -> dict:
+    """
+    Returns a new user with the given username and user rol it has.
+
+    :param db: database session.
+    :param request: user creation request.
+    :return: a dictionary with the username and rol specified in the request.
+    """
     existing_user = db.query(User).filter(or_(User.username == request.username,
                                               User.email == request.email)).first()
 
@@ -54,7 +60,7 @@ async def create_user(db: db_dependency, request: CreateUserRequest) -> dict:
 
     create_user_model = User(
         username=request.username,
-        type=request.type,
+        role=request.role,
         hashed_password=bcrypt_context.hash(request.password),
         email=request.email,
     )
@@ -64,13 +70,20 @@ async def create_user(db: db_dependency, request: CreateUserRequest) -> dict:
 
     return {
         'username': request.username,
-        'user_type': request.type,
+        'user_role': request.role,
     }
 
 
-@router.post('/token', response_model=Token)
+@router.post('/token', response_model=TokenModel, status_code=status.HTTP_200_OK)
 async def access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-                       db: db_dependency) -> dict:
+                       db: Annotated[Session, Depends(yield_db_session)]) -> dict:
+    """
+    generates access token for the given username and password.
+
+    :param form_data: standard OAuth2PasswordRequestForm.
+    :param db: database session.
+    :return: a dictionary with the access_token and token_type generated here.
+    """
     user = db.query(User).filter(User.username == form_data.username).first()
 
     if not user or not bcrypt_context.verify(form_data.password, user.hashed_password):
@@ -90,6 +103,12 @@ async def access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()
 
 
 async def decode_current_user(token: Annotated[str, Depends(oauth2_bearer)]) -> str:
+    """
+    decodes a token into the original payload.
+
+    :param token: the token to decode (oauth2 bearer type).
+    :return: the user's username.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 

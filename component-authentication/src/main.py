@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Annotated
@@ -11,6 +12,7 @@ from .models import User
 
 
 app = FastAPI()
+
 app.include_router(router)
 
 origins = [
@@ -51,3 +53,6 @@ async def authenticate(username: Annotated[dict, Depends(decode_current_user)],
         'username': username,
         'role': user.role,
     }
+
+if __name__ == "__main__":
+    uvicorn.run(app='src.main:app', host="0.0.0.0", port=9393, log_level='debug', reload=True)

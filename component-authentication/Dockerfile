@@ -12,4 +12,4 @@ RUN pip install --upgrade -r /app/requirements.txt
 COPY ./src /app/src
 
 CMD ["source", "venv/bin/activate"]
-CMD ["python3", "-m", "uvicorn", "src.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "9393"]
+CMD ["python3", "src/main.py"]
