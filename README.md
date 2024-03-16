@@ -17,9 +17,19 @@ cd experimentation
 cd ..
 ```
 
+you can check the following URLs:
+- http://127.0.0.1:7373/docs | Authentication
+- http://127.0.0.1:4343/docs | Authorization
+- http://127.0.0.1:9393/docs | API Gateway
+
+
 ## Stop Project
 ```shell
 cd experimentation
 ./stop_microservices.sh
 cd ..
 ```
+
+## Run experiment
+Run all the contents in `experimentation/src/stats.ipynb`.
+All components must be up. `experimentation/stop_microservices.sh` will remove our DB.

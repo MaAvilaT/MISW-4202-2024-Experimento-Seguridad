@@ -3,13 +3,13 @@ version: '3'
 services:
   component-authentication:
     build: .
-    expose:
-      - 9393
+    ports:
+      - "9393:9393"
     environment:
       DATABASE_USER: maat
       DATABASE_PASSWORD: SECURE&STRING_PASSWORD
       DATABASE_NAME: component_authentication_database
-      DATABASE_HOSTNAME: 192.168.16.2
+      DATABASE_HOSTNAME: 10.168.16.2
       DATABASE_PORT: 5432
     depends_on:
       database:
@@ -37,15 +37,15 @@ services:
       retries: 5
     networks:
       db-link:
-        ipv4_address: 192.168.16.2
+        ipv4_address: 10.168.16.2
 
 networks:
   db-link:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.0.0/16
-          gateway: 192.168.16.1
+        - subnet: 10.168.0.0/16
+          gateway: 10.168.16.1
 
 volumes:
   pgdata:
