@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  component-authorization:
+    build: .
+    ports:
+      - "4343:4343"
+    environment:
+      AUTHORIZATION_URL: http://localhost:4343
+      AUTHENTICATION_URL: http://localhost:9393
+      API_GATEWAY_URL: http://localhost:7373
