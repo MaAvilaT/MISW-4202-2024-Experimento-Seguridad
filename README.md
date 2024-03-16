@@ -18,9 +18,9 @@ cd ..
 ```
 
 you can check the following URLs:
-- http://127.0.0.1:7373/docs | Authentication
+- http://127.0.0.1:7373/docs | API Gateway
 - http://127.0.0.1:4343/docs | Authorization
-- http://127.0.0.1:9393/docs | API Gateway
+- http://127.0.0.1:9393/docs | Authentication
 
 
 ## Stop Project

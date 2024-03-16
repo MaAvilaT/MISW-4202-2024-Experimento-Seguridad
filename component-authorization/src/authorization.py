@@ -2,8 +2,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 router = APIRouter(
-    prefix='/authentication',
-    tags=['Authentication']
+    prefix='/authorization',
+    tags=['Authorization']
 )
 
 

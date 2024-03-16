@@ -47,6 +47,11 @@ async def authenticate(username: Annotated[dict, Depends(decode_current_user)],
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail='Internal server error'
         )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='User is suspended'
+        )
 
     return {
         'username': username,

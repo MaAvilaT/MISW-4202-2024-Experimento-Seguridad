@@ -70,7 +70,9 @@ async def check_accesses(request_dto: RequestDTO):
             case constants.Role.BUSINESS_PARTNER:
                 pass
 
-        requests.post(url=f'{constants.COMPONENT_AUTHENTICATION_BASE_URL}/suspend', json=request_dto.token)
+        requests.post(url=f'{constants.COMPONENT_AUTHENTICATION_BASE_URL}/authentication/suspend',
+                      headers={'Content-Type': 'application/json',
+                               'Authorization': f'Bearer {request_dto.token["access_token"]}'})
         return {
             'action_authorized': False,
             'user_suspended': True,
