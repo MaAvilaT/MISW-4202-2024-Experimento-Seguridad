@@ -3,7 +3,7 @@ import logging
 
 import requests
 import uvicorn
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import constants
@@ -30,7 +30,7 @@ logger = logging.getLogger(constants.LOGGER_NAME)
 
 
 @app.post('/authorize', status_code=status.HTTP_200_OK)
-async def check_accesses(request_dto: RequestDTO):
+async def check_accesses(request_dto: RequestDTO, server_response: Response):
     """
     Checks access to the requested endpoint by requiring a mandatory access token.
     Then if component authentication confirms, we can proceed with the checking of access from the user.
@@ -38,6 +38,7 @@ async def check_accesses(request_dto: RequestDTO):
     Taking in consideration that /authenticate endpoint returns the role of the user, we can
     give more credibility to the action it wants to execute.
 
+    :param server_response: this server's response.
     :param request_dto: the request data, includes:
     - "token": the access token.
     - "request": an arbitrary dictionary containing an endpoint and further data to feed the endpoint.
@@ -73,6 +74,9 @@ async def check_accesses(request_dto: RequestDTO):
         requests.post(url=f'{constants.COMPONENT_AUTHENTICATION_BASE_URL}/authentication/suspend',
                       headers={'Content-Type': 'application/json',
                                'Authorization': f'Bearer {request_dto.token["access_token"]}'})
+
+        server_response.status_code = status.HTTP_403_FORBIDDEN
+
         return {
             'action_authorized': False,
             'user_suspended': True,
