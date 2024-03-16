@@ -86,7 +86,9 @@ async def access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()
     """
     user = db.query(User).filter(User.username == form_data.username).first()
 
-    if not user or not bcrypt_context.verify(form_data.password, user.hashed_password):
+    if (not user or
+            not bcrypt_context.verify(form_data.password, user.hashed_password) or
+            not user.is_active):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Incorrect data')
 
@@ -102,7 +104,7 @@ async def access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()
     }
 
 
-async def decode_current_user(token: Annotated[str, Depends(oauth2_bearer)]) -> str:
+def decode_current_user(token: Annotated[str, Depends(oauth2_bearer)]) -> str:
     """
     decodes a token into the original payload.
 
@@ -121,3 +123,33 @@ async def decode_current_user(token: Annotated[str, Depends(oauth2_bearer)]) -> 
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Unauthorized credentials')
+
+
+@router.post('/suspend', status_code=status.HTTP_200_OK)
+async def suspend_user(username: Annotated[dict, Depends(decode_current_user)],
+                       db: Annotated[Session, Depends(yield_db_session)]) -> None:
+    """
+    Suspends a user's account.
+
+    :param username: inferred username from decoding a required access token
+    within the `oauth2_bearer` model.
+    :param db: the database connection to use.
+    :return:
+    """
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Authentication credentials were not provided'
+        )
+
+    user = db.query(User).filter(User.username == username).one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail='Internal server error'
+        )
+
+    user.is_active = False
+    db.add(user)
+    db.commit()

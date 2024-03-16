@@ -2,18 +2,24 @@
 Repository for MISW 4202 Agile Software Architectures second experiment, security for software architectures.
 
 
-## Dependencies Setup in _component-authentication_
+## Project Setup
 ```shell
-python3 -m venv venv
-
-source venv/bin/activate
-
-pip install --upgrade pip
-
-pip install -r requirements.txt
+chmod -R +x "experimentation/"
+cd experimentation
+./setup.sh
+cd ..
 ```
 
-### Starting the microservice
+## Start Project
 ```shell
-uvicorn main:app --reload
+cd experimentation
+./start_microservices.sh
+cd ..
+```
+
+## Stop Project
+```shell
+cd experimentation
+./stop_microservices.sh
+cd ..
 ```

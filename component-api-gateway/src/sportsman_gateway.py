@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 import requests
@@ -12,8 +13,10 @@ router = APIRouter(
     tags=['Sportsman']
 )
 
+logger = logging.getLogger(constants.LOGGER_NAME)
 
-@router.post('/login')
+
+@router.post('/login', status_code=status.HTTP_200_OK)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     """
     Login for Sportsman.
@@ -40,29 +43,33 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     return response.json()
 
 
-@router.post('/sync/sportsman')
+@router.post('/sync/sportsman', status_code=status.HTTP_200_OK)
 async def synchronous_sportsman(request: LoggedUserRequest):
     """
     Synchronous api endpoint for authenticated Sportsmen.
 
-    :param request: data that needs to comply with the LoggedUserRequest model.
+    :param request: data that needs to comply with the `LoggedUserRequest` model.
     :return: the response from the synchronous action the sportsman is trying to achieve.
     """
-    response = requests.post(f'{constants.COMPONENT_AUTHENTICATION_BASE_URL}/authenticate', data=request.token)
+    response = requests.get(f'{constants.COMPONENT_AUTHENTICATION_BASE_URL}/authenticate',
+                            headers={'Content-Type': 'application/json',
+                                     'Authorization': f'Bearer {request.token["access_token"]}'})
 
     if response.status_code != status.HTTP_200_OK:
+        logger.log(level=logging.ERROR, msg=f'got response from `{constants.COMPONENT_AUTHENTICATION_BASE_URL}'
+                                            f'/authenticate` but was `{response.json()}`')
         raise HTTPException(status_code=response.status_code,
                             detail='Unable to authenticate')
 
-    if response.user.role != 'SPORTSMAN':
-        # TODO BLOCK USER, NOTIFY
-
+    if response.json().get('role') != 'SPORTSMAN':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    response = requests.post(f'{constants.COMPONENT_AUTHORIZATION_BASE_URL}/authorize', data=request.token)
+    response = requests.post(f'{constants.COMPONENT_AUTHORIZATION_BASE_URL}/authorize', data=request.json())
 
     if response.status_code != status.HTTP_200_OK:
         raise HTTPException(status_code=response.status_code,
                             detail='Unauthorized')
+
+    # reach of this exercise, we would define logic here if this was a real app.
 
     return response.json()
